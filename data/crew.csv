@@ -1,0 +1,9 @@
+crew_id,name,role,base,qualification,status,duty_start,rest_start
+C1023,Aarav Sharma,Captain,DEL,A320,ON_DUTY,07:00,22:00
+C1842,Rohan Mehta,Captain,DEL,A320,AVAILABLE,,00:00
+C2041,Vikram Singh,First Officer,DEL,A320,ON_DUTY,07:00,22:00
+C3312,Arjun Nair,Senior Cabin Crew,DEL,A320,ON_DUTY,07:00,22:00
+C4421,Aditya Rao,First Officer,BLR,A320,AVAILABLE,,01:00
+C5188,Karan Patel,Cabin Crew,HYD,A320,AVAILABLE,,02:00
+C6290,Rahul Verma,Captain,BOM,A320,AVAILABLE,,23:00
+C7345,Neeraj Kumar,First Officer,BOM,A320,AVAILABLE,,23:30

@@ -1,0 +1,6 @@
+crew_id,name,role,base,qualification,status,location,available_from
+S101,Rahul Sethi,Captain,BOM,A320,AVAILABLE,BOM,10:00
+S202,Mehul Iyer,First Officer,DEL,A320,AVAILABLE,DEL,11:00
+S303,Priyanka Das,Senior Cabin Crew,BLR,A320,AVAILABLE,BLR,12:00
+S404,Rishi Nair,Captain,BLR,A320,AVAILABLE,BLR,09:00
+S505,Ananya Bose,First Officer,HYD,A320,AVAILABLE,HYD,10:00
