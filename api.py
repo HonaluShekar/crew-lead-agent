@@ -3,10 +3,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, validator
 import logging
 import re
+from functools import lru_cache
 from typing import Optional
 
-from src.crew_lead.agent import agent
-from src.crew_lead.workflow import analyze_disruption, build_crew_lead_report
+from src.crew_lead.ui_adapter import (
+    build_ui_activity,
+    build_ui_analysis,
+    build_ui_crew,
+    build_ui_disruptions,
+    build_ui_flights,
+    build_ui_issues,
+    build_ui_recommendations,
+    build_ui_snapshot,
+)
+from src.crew_lead.workflow import build_crew_lead_report
 
 
 # ---------------------------------------------------------
@@ -43,12 +53,33 @@ class CrewLeadRequest(BaseModel):
     message: str
     
     @validator("message")
-    def message_must_not_be_empty(cls, v):
-        if not v or not v.strip():
-            raise ValueError("Message cannot be empty")
+    def validate_message(cls, v):
         if len(v) > 10000:
             raise ValueError("Message is too long (max 10000 characters)")
         return v.strip()
+
+
+class UIAnalysisRequest(BaseModel):
+    query: str
+
+    @validator("query")
+    def query_must_not_be_empty(cls, v):
+        if not v or not v.strip():
+            raise ValueError("Query cannot be empty")
+        return v.strip()
+
+
+@lru_cache(maxsize=1)
+def _load_optional_agent():
+    """Load the LLM agent only when the natural-language fallback is used."""
+
+    try:
+        from src.crew_lead.agent import agent
+
+        return agent
+    except Exception as exc:
+        logger.warning("LLM agent unavailable: %s", exc)
+        return None
 
 
 # ---------------------------------------------------------
@@ -219,6 +250,11 @@ def ask_agent(request: CrewLeadRequest):
     """
     try:
         message = request.message
+        if not message:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Message cannot be empty",
+            )
         logger.info(f"Processing agent request: {message[:100]}")
         
         # Try to extract flight ID from message
@@ -246,10 +282,24 @@ def ask_agent(request: CrewLeadRequest):
                 # If flight not found, fall through to agent
                 logger.info(f"Flight {flight_id} not found, using agent instead")
         
-        # Fall through to agent for general inquiries
+        # Fall through to agent for general inquiries.
+        # The deterministic API remains usable when optional LLM packages or
+        # credentials are not installed.
         logger.info("Routing to LangGraph agent")
         try:
-            result = agent.invoke({
+            runtime_agent = _load_optional_agent()
+            if runtime_agent is None:
+                return {
+                    "response": (
+                        "The LLM agent is not configured in this environment. "
+                        "Use /assess/{flight_id} or include a valid flight ID "
+                        "for deterministic crew assessment."
+                    ),
+                    "agent": "crew_lead_agent",
+                    "agent_available": False,
+                }
+
+            result = runtime_agent.invoke({
                 "messages": [
                     {"role": "user", "content": message}
                 ]
@@ -288,6 +338,75 @@ def ask_agent(request: CrewLeadRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Request processing failed: {str(e)}"
+        )
+
+
+# ---------------------------------------------------------
+# React UI data endpoints
+# ---------------------------------------------------------
+@app.get("/ui/flights")
+def ui_flights():
+    """Return CSV-backed flight data in the React console's shape."""
+
+    return build_ui_flights()
+
+
+@app.get("/ui/crew")
+def ui_crew():
+    """Return CSV-backed crew data with derived duty and risk fields."""
+
+    return build_ui_crew()
+
+
+@app.get("/ui/disruptions")
+def ui_disruptions():
+    """Return disruptions derived from the current flight and crew data."""
+
+    return build_ui_disruptions()
+
+
+@app.get("/ui/issues")
+def ui_issues():
+    """Return operational issues derived from the deterministic rules."""
+
+    return build_ui_issues()
+
+
+@app.get("/ui/recommendations")
+def ui_recommendations():
+    """Return current decision-support recommendations for disrupted flights."""
+
+    return build_ui_recommendations()
+
+
+@app.get("/ui/availability-snapshot")
+def ui_availability_snapshot():
+    return build_ui_snapshot()
+
+
+@app.get("/ui/activity")
+def ui_activity():
+    """Return a current, non-persisted deterministic workflow snapshot."""
+
+    return build_ui_activity()
+
+
+@app.post("/ui/analyze")
+def ui_analyze(request: UIAnalysisRequest):
+    """Run a structured analysis for the React AI Crew Lead screen."""
+
+    try:
+        return build_ui_analysis(request.query)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+    except Exception as exc:
+        logger.error("UI analysis failed: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate UI analysis.",
         )
 
 

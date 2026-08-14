@@ -206,9 +206,9 @@ class TestErrorHandling:
     
     def test_assessment_handles_special_characters(self, client):
         """Test that assessment endpoint handles special characters in flight ID."""
-        # Should not crash, but return 404
+        # Invalid flight IDs are rejected by request validation.
         response = client.post("/assess/6E@#$%")
-        assert response.status_code in [404, 500]  # Either not found or error
+        assert response.status_code == 400
     
     def test_ask_handles_very_long_message(self, client):
         """Test ask endpoint with very long message."""

@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-console-950 text-slate-200 font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  * {
+    @apply border-console-700;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-console-900 border border-console-700 rounded-lg shadow-console;
+  }
+  .panel-header {
+    @apply flex items-center justify-between px-4 py-3 border-b border-console-700;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent-deep;
+  }
+  .btn-ghost {
+    @apply btn text-slate-300 hover:bg-console-800;
+  }
+  .btn-outline {
+    @apply btn border border-console-600 text-slate-200 hover:bg-console-800;
+  }
+  .btn-danger {
+    @apply btn bg-severity-critical/90 text-white hover:bg-severity-critical;
+  }
+  .input {
+    @apply bg-console-850 border border-console-700 rounded-md px-3 py-1.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium border;
+  }
+  .row-hover {
+    @apply transition-colors hover:bg-console-850 cursor-pointer;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #283447 transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-console-700 rounded;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #1a2435 25%, #212d42 37%, #1a2435 63%);
+  background-size: 1000px 100%;
+  @apply animate-shimmer rounded;
+}

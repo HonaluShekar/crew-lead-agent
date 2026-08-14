@@ -66,11 +66,7 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-If requirements.txt is not present, install the relevant packages manually:
-
-```bash
-python -m pip install fastapi uvicorn streamlit langchain-openai langgraph python-dotenv pytest
-```
+The repository includes `requirements.txt` for the Python services.
 
 ## Run the backend
 
@@ -88,6 +84,33 @@ uvicorn main:app --reload
 
 ```bash
 streamlit run frontend.py
+```
+
+## Run the Bolt React UI with the Python backend
+
+The React UI is in `project/` and uses the Python API as its data source.
+The Vite development proxy forwards `/api/*` to `http://127.0.0.1:8000`.
+
+Terminal 1 - backend from the project root:
+
+```bash
+uvicorn api:app --reload
+```
+
+Terminal 2 - Bolt UI:
+
+```bash
+cd project
+npm install
+npm run dev
+```
+
+The UI reads `/api/ui/flights`, `/api/ui/crew`, `/api/ui/disruptions`,
+`/api/ui/issues`, and `/api/ui/analyze` through the proxy. To point a
+production build at another backend, set `VITE_API_BASE_URL`, for example:
+
+```bash
+VITE_API_BASE_URL=https://your-api.example.com npm run build
 ```
 
 ## Example API calls
