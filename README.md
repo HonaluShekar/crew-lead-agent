@@ -113,6 +113,38 @@ production build at another backend, set `VITE_API_BASE_URL`, for example:
 VITE_API_BASE_URL=https://your-api.example.com npm run build
 ```
 
+## Azure deployment
+
+The repository includes GitHub Actions workflows for the recommended split
+deployment:
+
+- `.github/workflows/backend-app-service.yml` deploys the FastAPI backend to Azure App Service.
+- `.github/workflows/frontend-static-web-app.yml` builds and deploys the Bolt UI to Azure Static Web Apps.
+
+Configure these GitHub repository variables and secrets before enabling the
+workflows:
+
+- Variable `AZURE_BACKEND_APP_NAME`: the Azure App Service name.
+- Secret `AZURE_BACKEND_PUBLISH_PROFILE`: the App Service publish profile XML.
+- Secret `AZURE_STATIC_WEB_APPS_API_TOKEN`: the Static Web Apps deployment token.
+- Variable `VITE_API_BASE_URL`: `https://<backend-app>.azurewebsites.net`.
+
+Configure the backend App Service with this startup command:
+
+```text
+gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 main:app
+```
+
+Also set `SCM_DO_BUILD_DURING_DEPLOYMENT=true` and set `CORS_ORIGINS` to the
+Static Web Apps URL, for example:
+
+```text
+CORS_ORIGINS=https://<static-app>.azurestaticapps.net
+```
+
+The frontend API URL is injected at build time; do not put API keys or other
+secrets in `VITE_` variables because they are included in the browser bundle.
+
 ## Example API calls
 
 ### Health check

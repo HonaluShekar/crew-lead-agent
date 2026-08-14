@@ -8,6 +8,16 @@ from api import app
 client = TestClient(app)
 
 
+def test_ui_api_allows_local_vite_origin():
+    response = client.get(
+        "/health",
+        headers={"Origin": "http://localhost:5173"},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
 def test_ui_collection_endpoints_return_bolt_shapes():
     """The UI data endpoints should return non-empty JSON collections."""
     endpoints = [

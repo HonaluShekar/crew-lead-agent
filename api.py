@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, validator
 import logging
+import os
 import re
 from functools import lru_cache
 from typing import Optional
@@ -35,12 +36,22 @@ app = FastAPI(
 
 # ---------------------------------------------------------
 # CORS
-# Allows the Bolt/Vite frontend to communicate with FastAPI
+# Local development uses the Vite proxy. Azure uses CORS_ORIGINS to allow
+# the deployed Static Web App origin to call this App Service.
 # ---------------------------------------------------------
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
